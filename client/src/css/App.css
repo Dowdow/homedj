@@ -1,0 +1,37 @@
+.container {
+  width: 95%;
+  margin: 0 auto;
+}
+
+.box {
+  background: #FFFFFF;
+  border-radius: 2px;
+  margin: 20px 0;
+}
+
+.box h4 {
+  text-align: center;
+  margin: 10px 0;
+  opacity: .9;
+}
+
+.button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 30px;
+}
+
+button {
+  align-self: center;
+  border: 0;
+  border-radius: 2px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.button button {
+
+  background: #BF3128;
+  color: #FFFFFF;
+}

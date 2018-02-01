@@ -1,0 +1,13 @@
+.grid {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.grid section {
+  width: 55%;
+}
+
+.grid section:first-child, .grid section:last-child {
+  width: 20%;
+}

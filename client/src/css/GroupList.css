@@ -1,0 +1,22 @@
+.groupList {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.group {
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  background: #BF3128;
+  margin: 0 10px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.group h5 {
+  margin: 0 0 0 10px;
+  align-self: center;
+  color: #FFFFFF;
+  opacity: .9;
+}

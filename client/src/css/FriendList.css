@@ -1,0 +1,32 @@
+.friendList {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.friend {
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  background: #BF3128;
+  margin: 0 10px 10px;
+  border-radius: 2px;
+}
+
+.friend h5 {
+  margin: 0 0 0 10px;
+  align-self: center;
+  color: #FFFFFF;
+  opacity: .9;
+}
+
+.friend img {
+  display: block;
+  height: 50px;
+  width: 50px;
+}
+
+.friend button {
+  margin: 0 0 0 10px;
+  background: #FFFFFF;
+}

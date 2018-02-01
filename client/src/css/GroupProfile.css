@@ -1,0 +1,4 @@
+.groupProfile {
+  display: flex;
+  flex-direction: column;
+}
