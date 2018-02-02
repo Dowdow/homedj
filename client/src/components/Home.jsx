@@ -1,16 +1,15 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import GroupList from './GroupList';
 import GroupProfile from './GroupProfile';
 import Playlist from './Playlist';
 import FriendList from './FriendList';
+import { setGroup, addUserToGroup, removeUserFromGroup, waitAddUserToGroup, waitRemoveUserFromGroup } from '../actions/group';
 import '../css/Home.css';
 
 class Home extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      currentGroup: null,
-    };
     this.handleSelectGroup = this.handleSelectGroup.bind(this);
     this.handleLeaveGroup = this.handleLeaveGroup.bind(this);
     this.addUserToGroup = this.addUserToGroup.bind(this);
@@ -18,44 +17,24 @@ class Home extends Component {
   }
 
   componentWillMount() {
-    this.props.socket.on('addUserToGroup', (user) => {
-      this.setState(prevState => ({
-        currentGroup: {
-          _id: prevState.currentGroup._id,
-          name: prevState.currentGroup.name,
-          users: [...prevState.currentGroup.users, user],
-        },
-      }));
-    });
-    this.props.socket.on('removeUserFromGroup', (user) => {
-      this.setState(prevState => ({
-        currentGroup: {
-          _id: prevState.currentGroup._id,
-          name: prevState.currentGroup.name,
-          users: [...prevState.currentGroup.users].filter(u => u !== user),
-        },
-      }));
-    });
+    this.props.waitAddUserToGroup();
+    this.props.waitRemoveUserFromGroup();
   }
 
   handleSelectGroup(group) {
-    this.setState({
-      currentGroup: group,
-    });
+    this.props.setGroup(group);
   }
 
   handleLeaveGroup() {
-    this.setState({
-      currentGroup: null,
-    });
+    this.props.setGroup(null);
   }
 
   addUserToGroup(friend) {
-    this.props.socket.emit('addUserToGroup', { friend, group: this.state.currentGroup._id });
+    this.props.addUserToGroup({ friend, group: this.props.currentGroup._id });
   }
 
   removeUserFromGroup(friend) {
-    this.props.socket.emit('removeUserFromGroup', { friend, group: this.state.currentGroup._id });
+    this.props.removeUserFromGroup({ friend, group: this.props.currentGroup._id });
   }
 
   render() {
@@ -63,11 +42,10 @@ class Home extends Component {
       <div className="grid">
         <section>
           {
-            this.state.currentGroup === null ?
-              <GroupList socket={this.props.socket} user={this.props.user} selectGroup={this.handleSelectGroup} /> :
+            this.props.currentGroup === null ?
+              <GroupList user={this.props.user} selectGroup={this.handleSelectGroup} /> :
               <GroupProfile
-                socket={this.props.socket}
-                currentGroup={this.state.currentGroup}
+                currentGroup={this.props.currentGroup}
                 returnToGroups={this.handleLeaveGroup}
               />
           }
@@ -77,8 +55,7 @@ class Home extends Component {
         </section>
         <section>
           <FriendList
-            socket={this.props.socket}
-            currentGroup={this.state.currentGroup}
+            currentGroup={this.props.currentGroup}
             addUserToGroup={this.addUserToGroup}
             removeUserFromGroup={this.removeUserFromGroup}
           />
@@ -88,4 +65,12 @@ class Home extends Component {
   }
 }
 
-export default Home;
+function mapStateToProps(state) {
+  return {
+    currentGroup: state.group,
+  };
+}
+
+export default connect(mapStateToProps, {
+  setGroup, addUserToGroup, removeUserFromGroup, waitAddUserToGroup, waitRemoveUserFromGroup,
+})(Home);

@@ -1,37 +1,25 @@
 import React, { Component } from 'react';
-import io from 'socket.io-client';
+import { connect } from 'react-redux';
 import Header from './Header';
 import Alert from './Alert';
 import Login from './Login';
 import Home from './Home';
 import Footer from './Footer';
-
+import { waitLogin } from '../actions/user';
 import '../css/App.css';
 
 class App extends Component {
-  constructor(props) {
-    super(props);
-    this.socket = io('http://localhost:3000');
-    this.state = {
-      user: false,
-    };
-  }
-
   componentWillMount() {
-    this.socket.on('logged', (user) => {
-      this.setState({
-        user,
-      });
-    });
+    this.props.waitLogin();
   }
 
   render() {
     return (
       <div>
-        <Header user={this.state.user} />
-        <Alert socket={this.socket} />
+        <Header user={this.props.user} />
+        <Alert />
         <div className="container">
-          {this.state.user ? <Home socket={this.socket} user={this.state.user} /> : <Login socket={this.socket} />}
+          {this.props.user ? <Home user={this.props.user} /> : <Login />}
         </div>
         <Footer />
       </div>
@@ -39,4 +27,10 @@ class App extends Component {
   }
 }
 
-export default App;
+function mapStateToProps(state) {
+  return {
+    user: state.user,
+  };
+}
+
+export default connect(mapStateToProps, { waitLogin })(App);

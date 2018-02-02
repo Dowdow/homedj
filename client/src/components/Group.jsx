@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 class Group extends Component {
   constructor(props) {
@@ -23,4 +24,8 @@ class Group extends Component {
   }
 }
 
-export default Group;
+function mapStateToProps(state) {
+  return {};
+}
+
+export default connect(mapStateToProps, {})(Group);

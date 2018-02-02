@@ -1,10 +1,17 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import FacebookLogin from 'react-facebook-login';
+import { login } from '../actions/user';
 import '../css/Login.css';
 
 class Login extends Component {
+  constructor(props) {
+    super(props);
+    this.responseFacebook = this.responseFacebook.bind(this);
+  }
+
   responseFacebook(response) {
-    this.socket.emit('login', response);
+    this.props.login(response);
   }
 
   render() {
@@ -18,7 +25,6 @@ class Login extends Component {
             fields="name,email,picture"
             scope="public_profile,user_friends,user_friends"
             callback={this.responseFacebook}
-            socket={this.props.socket}
           />
         </div>
       </div>
@@ -26,4 +32,8 @@ class Login extends Component {
   }
 }
 
-export default Login;
+function mapStateToProps() {
+  return {};
+}
+
+export default connect(mapStateToProps, { login })(Login);

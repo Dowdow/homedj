@@ -1,19 +1,17 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { waitAlert } from '../actions/alert';
 
 class Alert extends Component {
   componentWillMount() {
-    this.props.socket.on('error', (message) => {
-      this.setState({
-        message,
-      });
-    });
+    this.props.waitAlert();
   }
 
   render() {
-    if (this.state) {
+    if (this.props.message) {
       return (
         <div>
-          <h4>{this.state.message}</h4>
+          <h4>{this.props.message}</h4>
         </div>
       );
     }
@@ -21,4 +19,10 @@ class Alert extends Component {
   }
 }
 
-export default Alert;
+function mapStateToProps(state) {
+  return {
+    message: state.alert,
+  };
+}
+
+export default connect(mapStateToProps, { waitAlert })(Alert);
