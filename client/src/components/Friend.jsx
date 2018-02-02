@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
 
 class Friend extends Component {
-
-  handleAddUserToGroup = () => {
-    this.props.addUserToGroup(this.props._id)
+  constructor(props) {
+    super(props);
+    this.handleAddUserToGroup = this.handleAddUserToGroup.bind(this);
+    this.handleRemoveUserFromGroup = this.handleRemoveUserFromGroup.bind(this);
   }
 
-  handleRemoveUserFromGroup = () => {
-    this.props.removeUserFromGroup(this.props._id)
+  handleAddUserToGroup() {
+    this.props.addUserToGroup(this.props._id);
+  }
+
+  handleRemoveUserFromGroup() {
+    this.props.removeUserFromGroup(this.props._id);
   }
 
   render() {
@@ -18,7 +23,7 @@ class Friend extends Component {
         {this.props.add ? <button onClick={this.handleAddUserToGroup}>Add</button> : ''}
         {this.props.remove ? <button onClick={this.handleRemoveUserFromGroup}>Remove</button> : ''}
       </div>
-    )
+    );
   }
 }
 

@@ -14,15 +14,16 @@ class Login extends Component {
         <div>
           <FacebookLogin
             appId="484100118656863"
-            autoLoad={true}
+            autoLoad
             fields="name,email,picture"
             scope="public_profile,user_friends,user_friends"
             callback={this.responseFacebook}
-            socket={this.props.socket} />
+            socket={this.props.socket}
+          />
         </div>
       </div>
-    )
-  };
+    );
+  }
 }
 
-export default Login
+export default Login;

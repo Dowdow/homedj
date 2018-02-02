@@ -2,19 +2,25 @@ import React, { Component } from 'react';
 import '../css/GroupProfile.css';
 
 class GroupProfile extends Component {
+  constructor(props) {
+    super(props);
+    this.handleReturnToGroups = this.handleReturnToGroups.bind(this);
+    this.handleDeleteGroup = this.handleDeleteGroup.bind(this);
+  }
+
   componentWillMount() {
     this.props.socket.on('deleteGroup', () => {
       this.props.returnToGroups();
     });
   }
 
-  handleReturnToGroups = () => {
+  handleReturnToGroups() {
     this.props.returnToGroups();
   }
 
-  handleDeleteGroup = () => {
+  handleDeleteGroup() {
     this.props.socket.emit('deleteGroup', this.props.currentGroup);
-  };
+  }
 
   render() {
     return (
@@ -27,7 +33,7 @@ class GroupProfile extends Component {
           <button onClick={this.handleDeleteGroup}>Delete group</button>
         </div>
       </div>
-    )
+    );
   }
 }
 

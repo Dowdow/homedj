@@ -6,31 +6,33 @@ class GroupList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      'groups': []
+      groups: [],
     };
+    this.handleGetGroups = this.handleGetGroups.bind(this);
+    this.handleCreateGroup = this.handleCreateGroup.bind(this);
   }
 
   componentWillMount() {
-    this.props.socket.on('getGroups', groups => {
+    this.props.socket.on('getGroups', (groups) => {
       this.setState({
-        'groups': groups
-      })
+        groups,
+      });
     });
-    this.props.socket.on('createGroup', group => {
+    this.props.socket.on('createGroup', (group) => {
       this.setState(prevState => ({
-        'groups': [...prevState.groups, group]
-      }))
+        groups: [...prevState.groups, group],
+      }));
     });
     this.props.socket.emit('getGroups');
   }
 
-  handleGetGroups = () => {
+  handleGetGroups() {
     this.props.socket.emit('getGroups');
-  };
+  }
 
-  handleCreateGroup = () => {
-    this.props.socket.emit('createGroup', { 'name': '' });
-  };
+  handleCreateGroup() {
+    this.props.socket.emit('createGroup', { name: '' });
+  }
 
   render() {
     return (
@@ -44,8 +46,8 @@ class GroupList extends Component {
           <button onClick={this.handleCreateGroup}>Create a group</button>
         </div>
       </div>
-    )
-  };
+    );
+  }
 }
 
-export default GroupList
+export default GroupList;
