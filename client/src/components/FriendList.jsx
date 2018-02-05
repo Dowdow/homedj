@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import Friend from './Friend';
+import { getFriends, waitGetFriends } from '../actions/friends';
 import '../css/FriendList.css';
 
 class FriendList extends Component {
@@ -9,23 +11,16 @@ class FriendList extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      friends: [],
-    };
     this.refreshFriends = this.refreshFriends.bind(this);
   }
 
   componentWillMount() {
-    this.props.socket.on('getFriends', (friends) => {
-      this.setState({
-        friends,
-      });
-    });
-    this.props.socket.emit('getFriends');
+    this.props.waitGetFriends();
+    this.props.getFriends();
   }
 
   refreshFriends() {
-    this.props.socket.emit('getFriends');
+    this.props.getFriends();
   }
 
   renderFriendGroup(friend) {
@@ -41,7 +36,7 @@ class FriendList extends Component {
       return (
         <div className="friendList box">
           <h4>Friends</h4>
-          {this.state.friends.map(friend => FriendList.renderFriend(friend))}
+          {this.props.friends.map(friend => FriendList.renderFriend(friend))}
           <div className="button">
             <button onClick={this.refreshFriends}>Refresh friends</button>
           </div>
@@ -52,9 +47,9 @@ class FriendList extends Component {
     return (
       <div className="friendList box">
         <h4>Friends in group</h4>
-        {this.state.friends.map(friend => (this.props.currentGroup.users.indexOf(friend._id) !== -1 ? this.renderFriendGroup(friend) : ''))}
+        {this.props.friends.map(friend => (this.props.currentGroup.users.indexOf(friend._id) !== -1 ? this.renderFriendGroup(friend) : ''))}
         <h4>Friends</h4>
-        {this.state.friends.map(friend => (this.props.currentGroup.users.indexOf(friend._id) === -1 ? this.renderFriendNotGroup(friend) : ''))}
+        {this.props.friends.map(friend => (this.props.currentGroup.users.indexOf(friend._id) === -1 ? this.renderFriendNotGroup(friend) : ''))}
         <div className="button">
           <button onClick={this.refreshFriends}>Refresh friends</button>
         </div>
@@ -63,4 +58,10 @@ class FriendList extends Component {
   }
 }
 
-export default FriendList;
+function mapStateToProps(state) {
+  return {
+    friends: state.friends,
+  };
+}
+
+export default connect(mapStateToProps, { getFriends, waitGetFriends })(FriendList);

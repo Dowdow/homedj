@@ -1,6 +1,8 @@
 import socket from '../utils/socket';
+import { setGroup } from './group';
 
 export const ADD_GROUP = 'ADD_GROUP';
+export const DELETE_GROUP = 'DELETE_GROUP';
 export const SET_GROUPS = 'SET_GROUPS';
 
 export function addGroup(group) {
@@ -33,13 +35,30 @@ export function waitGroups() {
 }
 
 export function createGroup() {
-  socket.emit('createGroup', { name: '' });
+  return (dispatch) => {
+    socket.emit('createGroup', { name: '' });
+  };
 }
 
 export function waitCreateGroup() {
   return (dispatch) => {
     socket.on('createGroup', (group) => {
       dispatch(addGroup(group));
+      dispatch(setGroup(group));
+    });
+  };
+}
+
+export function deleteGroup(group) {
+  return (dispatch) => {
+    socket.emit('deleteGroup', group);
+  };
+}
+
+export function waitDeleteGroup() {
+  return (dispatch) => {
+    socket.on('deleteGroup', () => {
+      dispatch(setGroup(null));
     });
   };
 }

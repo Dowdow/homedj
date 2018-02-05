@@ -32,7 +32,9 @@ export function currentGroup(group) {
 }
 
 export function addUserToGroup(datas) {
-  socket.emit('addUserToGroup', datas);
+  return (dispatch) => {
+    socket.emit('addUserToGroup', datas);
+  };
 }
 
 export function waitAddUserToGroup() {
@@ -44,7 +46,9 @@ export function waitAddUserToGroup() {
 }
 
 export function removeUserFromGroup(datas) {
-  socket.emit('removeUserFromGroup', datas);
+  return (dispatch) => {
+    socket.emit('removeUserFromGroup', datas);
+  };
 }
 
 export function waitRemoveUserFromGroup() {

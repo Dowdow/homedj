@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { deleteGroup, waitDeleteGroup } from '../actions/groups';
 import '../css/GroupProfile.css';
 
 class GroupProfile extends Component {
@@ -9,9 +11,7 @@ class GroupProfile extends Component {
   }
 
   componentWillMount() {
-    this.props.socket.on('deleteGroup', () => {
-      this.props.returnToGroups();
-    });
+    this.props.waitDeleteGroup();
   }
 
   handleReturnToGroups() {
@@ -19,7 +19,7 @@ class GroupProfile extends Component {
   }
 
   handleDeleteGroup() {
-    this.props.socket.emit('deleteGroup', this.props.currentGroup);
+    this.props.deleteGroup(this.props.currentGroup);
   }
 
   render() {
@@ -37,4 +37,8 @@ class GroupProfile extends Component {
   }
 }
 
-export default GroupProfile;
+function mapStateToProps(state) {
+  return {};
+}
+
+export default connect(mapStateToProps, { deleteGroup, waitDeleteGroup })(GroupProfile);
