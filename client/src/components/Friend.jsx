@@ -20,8 +20,8 @@ class Friend extends Component {
       <div className="friend">
         <img src={this.props.picture} alt={this.props.name} />
         <h5>{this.props.name}</h5>
-        {this.props.add ? <button onClick={this.handleAddUserToGroup}>Add</button> : ''}
-        {this.props.remove ? <button onClick={this.handleRemoveUserFromGroup}>Remove</button> : ''}
+        {this.props.addUserToGroup ? <button onClick={this.handleAddUserToGroup}>Add</button> : ''}
+        {this.props.removeUserFromGroup ? <button onClick={this.handleRemoveUserFromGroup}>Remove</button> : ''}
       </div>
     );
   }

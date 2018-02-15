@@ -44,6 +44,8 @@ class DatabaseManager {
     return Promise.all([this.disconnectMongo()]);
   }
 
+  /* USERS */
+
   insertOneUser(user) {
     return new Promise((resolve, reject) => {
       const u = new this.User(user);
@@ -83,6 +85,8 @@ class DatabaseManager {
     });
   }
 
+  /* GROUPS */
+
   insertOneGroup(group) {
     return new Promise((resolve, reject) => {
       const g = new this.Group(group);
@@ -93,11 +97,38 @@ class DatabaseManager {
     });
   }
 
+  deleteOneById(id) {
+    return new Promise((resolve, reject) => {
+      this.Group.deleteOne({ _id: id }, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+
   findGroupsByUserId(id) {
     return new Promise((resolve, reject) => {
       this.Group.find({ users: { $in: [id] } }, (err, groups) => {
         if (err) reject(err);
         else resolve(groups);
+      });
+    });
+  }
+
+  addUserToGroup(id, userId) {
+    return new Promise((resolve, reject) => {
+      this.Group.updateOne({ _id: id }, { $addToSet: { users: userId } }, (err, res) => {
+        if (err) reject(err);
+        else resolve(res);
+      });
+    });
+  }
+
+  removeUserFromGroup(id, userId) {
+    return new Promise((resolve, reject) => {
+      this.Group.updateOne({ _id: id }, { $pull: { users: userId } }, (err, res) => {
+        if (err) reject(err);
+        else resolve(res);
       });
     });
   }

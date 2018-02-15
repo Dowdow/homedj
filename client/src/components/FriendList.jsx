@@ -23,11 +23,11 @@ class FriendList extends Component {
   }
 
   renderFriendGroup(friend) {
-    return <Friend key={friend._id} {...friend} add={false} remove removeUserFromGroup={this.props.removeUserFromGroup} />;
+    return <Friend key={friend._id} {...friend} removeUserFromGroup={this.props.removeUserFromGroup} />;
   }
 
   renderFriendNotGroup(friend) {
-    return <Friend key={friend._id} {...friend} add remove={false} addUserToGroup={this.props.addUserToGroup} />;
+    return <Friend key={friend._id} {...friend} addUserToGroup={this.props.addUserToGroup} />;
   }
 
   render() {

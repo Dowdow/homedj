@@ -5,9 +5,9 @@ export default function group(state = null, action = {}) {
     case SET_GROUP:
       return action.group;
     case ADD_USER:
-      return Object.assign({}, { users: [...state.users, action.user] });
+      return Object.assign({}, { _id: state._id, name: state.name, users: [...state.users, action.user] });
     case REMOVE_USER:
-      return Object.assign({}, { users: [...state.users].filter(u => u !== action.user) });
+      return Object.assign({}, { _id: state._id, name: state.name, users: [...state.users].filter(u => u !== action.user) });
     default: return state;
   }
 }

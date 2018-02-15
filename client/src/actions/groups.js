@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from '../utils/api';
+import { apiGet, apiPost, apiDelete } from '../utils/api';
 import { setGroup } from './group';
 
 export const ADD_GROUP = 'ADD_GROUP';
@@ -45,7 +45,7 @@ export function createGroup(name) {
 export function deleteGroup(group) {
   return async (dispatch) => {
     try {
-      await apiGet('group', []);
+      await apiDelete(`group/${group._id}`);
       dispatch(setGroup(null));
     } catch (err) {
       dispatch(setGroup(group));

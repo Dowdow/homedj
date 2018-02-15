@@ -18,6 +18,7 @@ app.all('*', (req, res, next) => {
   res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,DELETE');
   next();
 });
 app.use(express.static(`${__dirname}/../client/build`));
@@ -30,16 +31,12 @@ app.use(session({
   },
 }));
 
-/**
- * Root controller
- */
+/** Root controller */
 app.get('/', (req, res) => {
   res.sendFile('../client/index.html');
 });
 
-/**
- * Login controller
- */
+/** Login controller */
 app.post('/login', async (req, res) => {
   const data = req.body;
   req.session.accessToken = data.accessToken;
@@ -59,13 +56,11 @@ app.post('/login', async (req, res) => {
     req.session.user = lastUser;
     return res.json(lastUser);
   } catch (err) {
-    return res.json(err);
+    res.json({ error: 'Error' });
   }
 });
 
-/**
- * Friends controller
- */
+/** Friends controller */
 app.get('/friends', (req, res) => {
   // console.log(req.session);
   if (typeof req.session.accessToken === typeof undefined) {
@@ -97,55 +92,65 @@ app.get('/friends', (req, res) => {
   });
 });
 
-/**
- * Groups controller
- */
+/** Groups controller */
 app.get('/groups', async (req, res) => {
-  const groups = await dbManager.findGroupsByUserId(req.session.user._id);
-  res.json(groups);
+  try {
+    const groups = await dbManager.findGroupsByUserId(req.session.user._id);
+    res.json(groups);
+  } catch (err) {
+    res.json({ error: 'Error' });
+  }
 });
+
 app.post('/group', async (req, res) => {
-  const group = {
-    name: req.body.name,
-    users: [req.session.user._id],
-  };
-  const dbGroup = await dbManager.insertOneGroup(group);
-  res.json(dbGroup);
+  try {
+    const group = {
+      name: req.body.name,
+      users: [req.session.user._id],
+    };
+    const dbGroup = await dbManager.insertOneGroup(group);
+    res.json(dbGroup);
+  } catch (err) {
+    res.json({ error: 'Error' });
+  }
 });
-app.delete('/group', (req, res) => {
-  db.collection('group').deleteOne({ _id: new mongo.ObjectID(data._id) }, (err) => {
-    if (err) throw err;
-    client.emit('deleteGroup');
-  });
+
+app.delete('/group/:id', async (req, res) => {
+  try {
+    await dbManager.deleteOneById(req.params.id);
+    res.json({ acknowledged: true });
+  } catch (err) {
+    res.json({ error: 'Error' });
+  }
+});
+
+app.post('/group/:id/user', async (req, res) => {
+  try {
+    await dbManager.addUserToGroup(req.params.id, req.body.user);
+    res.json({ acknowledged: true });
+  } catch (err) {
+    res.json({ error: 'Error' });
+  }
+});
+
+app.delete('/group/:id/user/:user', async (req, res) => {
+  try {
+    await dbManager.removeUserFromGroup(req.params.id, req.params.user);
+    res.json({ acknowledged: true });
+  } catch (err) {
+    res.json({ error: 'Error' });
+  }
 });
 
 /** Socket IO */
 io.sockets.on('connection', (client) => {
-  // AddUserToGroup
-  client.on('addUserToGroup', (data) => {
-    const update = { $addToSet: { users: new mongo.ObjectID(data.friend) } };
-    db.collection('group').updateOne({ _id: new mongo.ObjectID(data.group) }, update, (err) => {
-      if (err) reject(err);
-      client.emit('addUserToGroup', new mongo.ObjectID(data.friend));
-    });
-  });
-
-  // RemoveUserFromGroup
-  client.on('removeUserFromGroup', (data) => {
-    const update = { $pull: { users: new mongo.ObjectID(data.friend) } };
-    db.collection('group').updateOne({ _id: new mongo.ObjectID(data.group) }, update, (err) => {
-      if (err) reject(err);
-      client.emit('removeUserFromGroup', new mongo.ObjectID(data.friend));
-    });
-  });
-
   // AddSong
-  client.on('addSong', (data) => {
+  client.on('addSong', () => {
 
   });
 
   // DeleteSong
-  client.on('deleteSong', (data) => {
+  client.on('deleteSong', () => {
 
   });
 

@@ -44,3 +44,18 @@ export function apiPost(route, body) {
     }
   });
 }
+
+export function apiDelete(route) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const res = await axios.delete(`${HOST}/${route}`, { withCredentials: true });
+      if (res.status === 200) {
+        resolve(res.data);
+      } else {
+        reject();
+      }
+    } catch (err) {
+      reject(err);
+    }
+  });
+}

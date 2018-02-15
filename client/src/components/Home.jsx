@@ -4,7 +4,7 @@ import GroupList from './GroupList';
 import GroupProfile from './GroupProfile';
 import Playlist from './Playlist';
 import FriendList from './FriendList';
-import { setGroup, addUserToGroup, removeUserFromGroup, waitAddUserToGroup, waitRemoveUserFromGroup } from '../actions/group';
+import { setGroup, addUserToGroup, removeUserFromGroup } from '../actions/group';
 import '../css/Home.css';
 
 class Home extends Component {
@@ -16,11 +16,6 @@ class Home extends Component {
     this.removeUserFromGroup = this.removeUserFromGroup.bind(this);
   }
 
-  componentWillMount() {
-    this.props.waitAddUserToGroup();
-    this.props.waitRemoveUserFromGroup();
-  }
-
   handleSelectGroup(group) {
     this.props.setGroup(group);
   }
@@ -30,11 +25,11 @@ class Home extends Component {
   }
 
   addUserToGroup(friend) {
-    this.props.addUserToGroup({ friend, group: this.props.currentGroup._id });
+    this.props.addUserToGroup(this.props.currentGroup._id, friend);
   }
 
   removeUserFromGroup(friend) {
-    this.props.removeUserFromGroup({ friend, group: this.props.currentGroup._id });
+    this.props.removeUserFromGroup(this.props.currentGroup._id, friend);
   }
 
   render() {
@@ -71,6 +66,4 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps, {
-  setGroup, addUserToGroup, removeUserFromGroup, waitAddUserToGroup, waitRemoveUserFromGroup,
-})(Home);
+export default connect(mapStateToProps, { setGroup, addUserToGroup, removeUserFromGroup })(Home);

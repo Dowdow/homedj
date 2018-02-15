@@ -1,4 +1,4 @@
-import socket from '../utils/socket';
+import { apiPost, apiDelete } from '../utils/api';
 
 export const ADD_USER = 'ADD_USER';
 export const SET_GROUP = 'SET_GROUP';
@@ -31,30 +31,24 @@ export function currentGroup(group) {
   };
 }
 
-export function addUserToGroup(datas) {
-  return (dispatch) => {
-    socket.emit('addUserToGroup', datas);
+export function addUserToGroup(id, userId) {
+  return async (dispatch) => {
+    try {
+      await apiPost(`group/${id}/user`, { user: userId });
+      dispatch(addUser(userId));
+    } catch (err) {
+      console.log(err);
+    }
   };
 }
 
-export function waitAddUserToGroup() {
-  return (dispatch) => {
-    socket.on('addUserToGroup', (user) => {
-      dispatch(addUser(user));
-    });
-  };
-}
-
-export function removeUserFromGroup(datas) {
-  return (dispatch) => {
-    socket.emit('removeUserFromGroup', datas);
-  };
-}
-
-export function waitRemoveUserFromGroup() {
-  return (dispatch) => {
-    socket.on('removeUserFromGroup', (user) => {
-      dispatch(removeUser(user));
-    });
+export function removeUserFromGroup(id, userId) {
+  return async (dispatch) => {
+    try {
+      apiDelete(`group/${id}/user/${userId}`);
+      dispatch(removeUser(userId));
+    } catch (err) {
+      console.log(err);
+    }
   };
 }
