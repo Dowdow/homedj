@@ -1,171 +1,180 @@
 require('dotenv').config();
+const DatabaseManager = require('./lib/DatabaseManager');
+const express = require('express');
+const session = require('express-session');
+const http = require('http');
 const https = require('https');
-const io = require('socket.io')();
-const mongo = require('mongodb');
+const socketIO = require('socket.io');
 
-mongo.MongoClient.connect('mongodb://localhost/homedj', (err, db) => {
-  if (err) throw err;
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+const dbManager = new DatabaseManager({
+  mongoURL: process.env.MONGO_URL,
+});
 
-  io.sockets.on('connection', (client) => {
-    let accessToken = '';
-    let user = {};
-    let friends = [];
+app.use(express.json());
+app.all('*', (req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+app.use(express.static(`${__dirname}/../client/build`));
+app.use(session({
+  secret: 'homedj',
+  resave: true,
+  saveUninitialized: true,
+  cookie: {
+    secure: false,
+  },
+}));
 
-    function updateUser(res, user) {
-      return new Promise((resolve, reject) => {
-        if (res === null) {
-          db.collection('user').insertOne(user, (err) => {
-            if (err) reject(err);
-          });
-        } else {
-          db.collection('user').updateOne({ _id: res._id }, user, (err) => {
-            if (err) reject(err);
-          });
-        }
-        resolve();
-      });
+/**
+ * Root controller
+ */
+app.get('/', (req, res) => {
+  res.sendFile('../client/index.html');
+});
+
+/**
+ * Login controller
+ */
+app.post('/login', async (req, res) => {
+  const data = req.body;
+  req.session.accessToken = data.accessToken;
+  try {
+    const user = await dbManager.findOneUserByFacebookId(data.id);
+    const newUser = {
+      name: data.name,
+      facebookId: data.id,
+      picture: data.picture.data.url,
+    };
+    if (user === null) {
+      await dbManager.insertOneUser(newUser);
+    } else {
+      await dbManager.updateOneUserById(user._id, newUser);
     }
+    const lastUser = await dbManager.findOneUserByFacebookId(data.id);
+    req.session.user = lastUser;
+    return res.json(lastUser);
+  } catch (err) {
+    return res.json(err);
+  }
+});
 
-    // Login or CreateAccount
-    client.on('login', (data) => {
-      accessToken = data.accessToken;
-      db.collection('user').findOne({ facebookId: data.id }, (err, res) => {
-        if (err) throw err;
-        user = {
-          name: data.name,
-          facebookId: data.id,
-          picture: data.picture.data.url,
-        };
-        updateUser(res, user).then(() => {
-          db.collection('user').findOne({ facebookId: data.id }, (err, res2) => {
-            if (err) throw err;
-            user = res2;
-            client.emit('logged', user);
-          });
-        }).catch((err) => {
-          throw err;
-        });
+/**
+ * Friends controller
+ */
+app.get('/friends', (req, res) => {
+  // console.log(req.session);
+  if (typeof req.session.accessToken === typeof undefined) {
+    return res.json({ error: 'Pas de token' });
+  }
+  const options = {
+    hostname: 'graph.facebook.com',
+    path: `/v2.11/${req.session.user.facebookId}/friends`,
+    headers: {
+      Authorization: `Bearer ${req.session.accessToken}`,
+    },
+  };
+
+  https.get(options, (httpRes) => {
+    let data = '';
+    httpRes.on('data', (d) => {
+      data += d;
+    });
+    httpRes.on('end', async () => {
+      const newFriends = JSON.parse(data);
+      const ids = [];
+      newFriends.data.forEach((element) => {
+        ids.push(element.id);
       });
+      const friends = await dbManager.findUsersByFacebookIds(ids);
+      res.json(friends);
     });
-
-    // GetFriends
-    client.on('getFriends', () => {
-      if (accessToken === '') {
-        return client.emit('error', 'Can\'t get friend list, please reconnect to the app');
-      }
-
-      const options = {
-        hostname: 'graph.facebook.com',
-        path: `/v2.11/${user.facebookId}/friends`,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-
-      https.get(options, (res) => {
-        let data = '';
-        res.on('data', (d) => {
-          data += d;
-        });
-        res.on('end', () => {
-          const newFriends = JSON.parse(data);
-          friends = [];
-          const ids = [];
-          for (const f in newFriends.data) {
-            if (newFriends.data.hasOwnProperty(f)) {
-              ids.push(newFriends.data[f].id);
-            }
-          }
-          db.collection('user').find({ facebookId: { $in: ids } }, (err, cursor) => {
-            if (err) throw err;
-            cursor.forEach((doc) => {
-              friends.push(doc);
-              cursor.hasNext((err, res) => {
-                if (!res) {
-                  client.emit('getFriends', friends);
-                }
-              });
-            });
-          });
-        });
-        res.on('error', () => client.emit('error', 'Can\'t get friend list, please reconnect to the app'));
-      });
-    });
-
-    // GetGroups
-    client.on('getGroups', () => {
-      db.collection('group').find({ users: { $in: [user._id] } }, (err, cursor) => {
-        if (err) throw err;
-        const groups = [];
-        cursor.forEach((doc) => {
-          groups.push(doc);
-          cursor.hasNext((err, res) => {
-            if (!res) {
-              client.emit('getGroups', groups);
-            }
-          });
-        });
-      });
-    });
-
-    // CreateGroup
-    client.on('createGroup', (data) => {
-      const group = {
-        name: data.name,
-        users: [user._id],
-      };
-      db.collection('group').insertOne(group, (err) => {
-        if (err) throw err;
-        client.emit('createGroup', group);
-      });
-    });
-
-    // DeleteGroup
-    client.on('deleteGroup', (data) => {
-      db.collection('group').deleteOne({ _id: new mongo.ObjectID(data._id) }, (err) => {
-        if (err) throw err;
-        client.emit('deleteGroup');
-      });
-    });
-
-    // LeaveGroup
-    client.on('leaveGroup', (data) => {
-
-    });
-
-    // AddUserToGroup
-    client.on('addUserToGroup', (data) => {
-      const update = { $addToSet: { users: new mongo.ObjectID(data.friend) } };
-      db.collection('group').updateOne({ _id: new mongo.ObjectID(data.group) }, update, (err) => {
-        if (err) reject(err);
-        client.emit('addUserToGroup', new mongo.ObjectID(data.friend));
-      });
-    });
-
-    // RemoveUserFromGroup
-    client.on('removeUserFromGroup', (data) => {
-      const update = { $pull: { users: new mongo.ObjectID(data.friend) } };
-      db.collection('group').updateOne({ _id: new mongo.ObjectID(data.group) }, update, (err) => {
-        if (err) reject(err);
-        client.emit('removeUserFromGroup', new mongo.ObjectID(data.friend));
-      });
-    });
-
-    // AddSong
-    client.on('addSong', (data) => {
-
-    });
-
-    // DeleteSong
-    client.on('deleteSong', (data) => {
-
-    });
-
-    // Disconnect
-    client.on('disconnect', () => {
-
-    });
+    httpRes.on('error', () => res.json({ error: 'Can\'t get friend list, please reconnect to the app' }));
   });
 });
 
-io.listen(process.env.PORT || 3000);
+/**
+ * Groups controller
+ */
+app.get('/groups', async (req, res) => {
+  console.log('GROUPS');
+  const groups = await dbManager.findGroupsByUserId(req.session.user._id);
+  res.json(groups);
+});
+app.get('/group/add', async (req, res) => {
+  const group = {
+    name: req.query.name,
+    users: [req.session.user._id],
+  };
+  const dbGroup = await dbManager.insertOneGroup(group);
+  res.json(dbGroup);
+});
+app.get('/group/delete/:id', (req, res) => {
+
+});
+
+/** Socket IO */
+io.sockets.on('connection', (client) => {
+  // DeleteGroup
+  client.on('deleteGroup', (data) => {
+    db.collection('group').deleteOne({ _id: new mongo.ObjectID(data._id) }, (err) => {
+      if (err) throw err;
+      client.emit('deleteGroup');
+    });
+  });
+
+  // LeaveGroup
+  client.on('leaveGroup', (data) => {
+
+  });
+
+  // AddUserToGroup
+  client.on('addUserToGroup', (data) => {
+    const update = { $addToSet: { users: new mongo.ObjectID(data.friend) } };
+    db.collection('group').updateOne({ _id: new mongo.ObjectID(data.group) }, update, (err) => {
+      if (err) reject(err);
+      client.emit('addUserToGroup', new mongo.ObjectID(data.friend));
+    });
+  });
+
+  // RemoveUserFromGroup
+  client.on('removeUserFromGroup', (data) => {
+    const update = { $pull: { users: new mongo.ObjectID(data.friend) } };
+    db.collection('group').updateOne({ _id: new mongo.ObjectID(data.group) }, update, (err) => {
+      if (err) reject(err);
+      client.emit('removeUserFromGroup', new mongo.ObjectID(data.friend));
+    });
+  });
+
+  // AddSong
+  client.on('addSong', (data) => {
+
+  });
+
+  // DeleteSong
+  client.on('deleteSong', (data) => {
+
+  });
+
+  // Disconnect
+  client.on('disconnect', () => {
+
+  });
+});
+
+async function start() {
+  try {
+    await dbManager.connect();
+  } catch (err) {
+    console.log(`Oh no, there was an error connecting to the databases! Quick fix it: ${err}`);
+  }
+  server.listen(process.env.PORT || 3000, () => {
+    console.log('Example app listening on port 3000!');
+  });
+}
+
+start();

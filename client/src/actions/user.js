@@ -1,4 +1,4 @@
-import socket from '../utils/socket';
+import { apiPost } from '../utils/api';
 
 export const SET_USER = 'SET_USER';
 
@@ -10,16 +10,12 @@ export function setUser(user) {
 }
 
 export function login(datas) {
-  return (dispatch) => {
-    socket.emit('login', datas);
-    dispatch(setUser(null));
-  };
-}
-
-export function waitLogin() {
-  return (dispatch) => {
-    socket.on('logged', (user) => {
+  return async (dispatch) => {
+    try {
+      const user = await apiPost('login', datas);
       dispatch(setUser(user));
-    });
+    } catch (err) {
+      dispatch(setUser(null));
+    }
   };
 }

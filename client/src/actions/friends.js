@@ -1,4 +1,4 @@
-import socket from '../utils/socket';
+import { apiGet } from '../utils/api';
 
 export const SET_FRIENDS = 'SET_FRIENDS';
 
@@ -10,16 +10,12 @@ export function setFriends(friends) {
 }
 
 export function getFriends() {
-  return (dispatch) => {
-    socket.emit('getFriends');
-    dispatch(setFriends([]));
-  };
-}
-
-export function waitGetFriends() {
-  return (dispatch) => {
-    socket.on('getFriends', (friends) => {
+  return async (dispatch) => {
+    try {
+      const friends = await apiGet('friends', []);
       dispatch(setFriends(friends));
-    });
+    } catch (err) {
+      dispatch(setFriends([]));
+    }
   };
 }

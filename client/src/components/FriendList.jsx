@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Friend from './Friend';
-import { getFriends, waitGetFriends } from '../actions/friends';
+import { getFriends } from '../actions/friends';
 import '../css/FriendList.css';
 
 class FriendList extends Component {
@@ -15,7 +15,6 @@ class FriendList extends Component {
   }
 
   componentWillMount() {
-    this.props.waitGetFriends();
     this.props.getFriends();
   }
 
@@ -64,4 +63,4 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps, { getFriends, waitGetFriends })(FriendList);
+export default connect(mapStateToProps, { getFriends })(FriendList);
