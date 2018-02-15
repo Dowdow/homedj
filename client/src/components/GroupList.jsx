@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Group from './Group';
-import { createGroup, getGroups, waitCreateGroup, waitGroups } from '../actions/groups';
+import { createGroup, getGroups } from '../actions/groups';
 import '../css/GroupList.css';
 
 class GroupList extends Component {
@@ -12,8 +12,6 @@ class GroupList extends Component {
   }
 
   componentWillMount() {
-    this.props.waitGroups();
-    this.props.waitCreateGroup();
     this.props.getGroups();
   }
 
@@ -22,7 +20,10 @@ class GroupList extends Component {
   }
 
   handleCreateGroup() {
-    this.props.createGroup();
+    const name = prompt('Group Name');
+    if (name != null) {
+      this.props.createGroup(name);
+    }
   }
 
   render() {
@@ -47,6 +48,4 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps, {
-  createGroup, getGroups, waitCreateGroup, waitGroups,
-})(GroupList);
+export default connect(mapStateToProps, { createGroup, getGroups })(GroupList);

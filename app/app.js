@@ -101,37 +101,26 @@ app.get('/friends', (req, res) => {
  * Groups controller
  */
 app.get('/groups', async (req, res) => {
-  console.log('GROUPS');
   const groups = await dbManager.findGroupsByUserId(req.session.user._id);
   res.json(groups);
 });
-app.get('/group/add', async (req, res) => {
+app.post('/group', async (req, res) => {
   const group = {
-    name: req.query.name,
+    name: req.body.name,
     users: [req.session.user._id],
   };
   const dbGroup = await dbManager.insertOneGroup(group);
   res.json(dbGroup);
 });
-app.get('/group/delete/:id', (req, res) => {
-
+app.delete('/group', (req, res) => {
+  db.collection('group').deleteOne({ _id: new mongo.ObjectID(data._id) }, (err) => {
+    if (err) throw err;
+    client.emit('deleteGroup');
+  });
 });
 
 /** Socket IO */
 io.sockets.on('connection', (client) => {
-  // DeleteGroup
-  client.on('deleteGroup', (data) => {
-    db.collection('group').deleteOne({ _id: new mongo.ObjectID(data._id) }, (err) => {
-      if (err) throw err;
-      client.emit('deleteGroup');
-    });
-  });
-
-  // LeaveGroup
-  client.on('leaveGroup', (data) => {
-
-  });
-
   // AddUserToGroup
   client.on('addUserToGroup', (data) => {
     const update = { $addToSet: { users: new mongo.ObjectID(data.friend) } };

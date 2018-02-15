@@ -1,4 +1,4 @@
-import socket from '../utils/socket';
+import { apiGet, apiPost } from '../utils/api';
 import { setGroup } from './group';
 
 export const ADD_GROUP = 'ADD_GROUP';
@@ -20,45 +20,35 @@ export function setGroups(groups) {
 }
 
 export function getGroups() {
-  return (dispatch) => {
-    socket.emit('getGroups');
-    dispatch(setGroups([]));
+  return async (dispatch) => {
+    try {
+      const friends = await apiGet('groups', []);
+      dispatch(setGroups(friends));
+    } catch (err) {
+      dispatch(setGroups([]));
+    }
   };
 }
 
-export function waitGroups() {
-  return (dispatch) => {
-    socket.on('getGroups', (groups) => {
-      dispatch(setGroups(groups));
-    });
-  };
-}
-
-export function createGroup() {
-  return (dispatch) => {
-    socket.emit('createGroup', { name: '' });
-  };
-}
-
-export function waitCreateGroup() {
-  return (dispatch) => {
-    socket.on('createGroup', (group) => {
+export function createGroup(name) {
+  return async (dispatch) => {
+    try {
+      const group = await apiPost('group', { name });
       dispatch(addGroup(group));
       dispatch(setGroup(group));
-    });
+    } catch (err) {
+      dispatch(setGroup(null));
+    }
   };
 }
 
 export function deleteGroup(group) {
-  return (dispatch) => {
-    socket.emit('deleteGroup', group);
-  };
-}
-
-export function waitDeleteGroup() {
-  return (dispatch) => {
-    socket.on('deleteGroup', () => {
+  return async (dispatch) => {
+    try {
+      await apiGet('group', []);
       dispatch(setGroup(null));
-    });
+    } catch (err) {
+      dispatch(setGroup(group));
+    }
   };
 }

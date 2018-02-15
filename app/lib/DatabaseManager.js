@@ -95,7 +95,7 @@ class DatabaseManager {
 
   findGroupsByUserId(id) {
     return new Promise((resolve, reject) => {
-      this.Group.find({ users: { $in: id } }, (err, groups) => {
+      this.Group.find({ users: { $in: [id] } }, (err, groups) => {
         if (err) reject(err);
         else resolve(groups);
       });

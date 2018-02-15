@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { deleteGroup, waitDeleteGroup } from '../actions/groups';
+import { deleteGroup } from '../actions/groups';
 import '../css/GroupProfile.css';
 
 class GroupProfile extends Component {
@@ -8,10 +8,6 @@ class GroupProfile extends Component {
     super(props);
     this.handleReturnToGroups = this.handleReturnToGroups.bind(this);
     this.handleDeleteGroup = this.handleDeleteGroup.bind(this);
-  }
-
-  componentWillMount() {
-    this.props.waitDeleteGroup();
   }
 
   handleReturnToGroups() {
@@ -41,4 +37,4 @@ function mapStateToProps(state) {
   return {};
 }
 
-export default connect(mapStateToProps, { deleteGroup, waitDeleteGroup })(GroupProfile);
+export default connect(mapStateToProps, { deleteGroup })(GroupProfile);
